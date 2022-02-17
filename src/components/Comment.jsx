@@ -1,66 +1,23 @@
-import { useState } from "react";
-import { useSelector } from "react-redux";
-import { useDispatch } from "react-redux";
-import { addComment } from "../Redux/comment/actions";
+import { useRef, useState } from "react";
 import "./Comment.css";
 
-export const Comment = () => {
-  const dispatch = useDispatch();
+export const Comment = ({ data }) => {
   const [click, setClick] = useState(false);
-  const { data } = useSelector((state) => ({
-    data: state.data,
-  }));
+  const [displayInput, setDisplayInput] = useState(false);
+  const inputData = useRef({ current: "" });
 
-  function addData(ind) {
-    console.log(ind);
-    let input = document.getElementsByClassName("inputData");
-    for (let i = 0; i < input.length; i++) {
-      if (input[i].value !== "") {
-        dispatch(addComment({ value: input[i].value, index: ind }));
-      }
-    }
-  }
-
-  function getIndex(ids) {
-    console.log(ids);
-    let parent = document.getElementsByClassName("hello")[ids];
-    let input = document.createElement("input");
-    input.placeholder = "Enter input";
-    input.className = "inputData";
-    let button = document.createElement("button");
-    button.innerText = "Add Reply";
-    button.addEventListener("click", () => addData(ids));
-    parent.append(input, button);
-  }
-  let index = 0;
-  function displayResult(data) {
-    return data.map((el) => {
-      el.placeholder = index++;
-      // console.log("Index", index, el.id);
-      return (
-        <div key={Math.random() * 99999} className="mainDiv">
-          <p>
-            {el.author} {el.points + " Points"} {calculateTime(el.timestamp)}
-          </p>
-          <h3>{el.body}</h3>
-          <div>
-            <span
-              className="spanElem replyBtn"
-              onClick={() => getIndex(el.placeholder)}
-            >
-              Reply
-            </span>
-            <span className="spanElem">Give Award</span>
-            <span className="spanElem">Share</span>
-            <span className="spanElem">Report</span>
-            <span className="spanElem">Save</span>
-          </div>
-          <div className="hello"></div>
-          <button onClick={() => setClick(!click)}>Expand</button>
-          {click ? displayResult(el.replies) : null}
-        </div>
-      );
-    });
+  function addreply() {
+    let payload = {
+      id: Math.random() * 1000000,
+      author: "Saurabh",
+      body: inputData.current,
+      timestamp: new Date().toString(),
+      points: "8",
+      replies: [],
+    };
+    data.replies = [...data.replies, payload];
+    setClick(true);
+    setDisplayInput(false);
   }
 
   function calculateTime(timestamp) {
@@ -96,10 +53,77 @@ export const Comment = () => {
     }
   }
 
-  return (
-    <div>
-      <h1>Comments</h1>
-      {displayResult(data)}
-    </div>
-  );
+  if (data?.replies?.length > 0) {
+    return (
+      <div className="mainDiv">
+        <p>
+          {data.author} {data.points + " Points"}{" "}
+          {calculateTime(data.timestamp)}
+        </p>
+        <h3>{data.body}</h3>
+        <div>
+          <span
+            className="spanElem replyBtn"
+            onClick={() => setDisplayInput(!displayInput)}
+          >
+            Reply
+          </span>
+          <span className="spanElem">Give Award</span>
+          <span className="spanElem">Share</span>
+          <span className="spanElem">Report</span>
+          <span className="spanElem">Save</span>
+        </div>
+        <div style={{ display: displayInput ? "block" : "none" }}>
+          <input
+            placeholder="Enter your reply"
+            onChange={(e) => {
+              inputData.current = e.target.value;
+            }}
+          ></input>
+          <button onClick={addreply}>Add Reply</button>
+        </div>
+        {data.replies.length !== 0 ? (
+          <button onClick={() => setClick(!click)}>Expand</button>
+        ) : null}
+        {click ? (
+          <div>
+            {data.replies.map((el) => (
+              <Comment data={el} key={Math.random() * 111111}></Comment>
+            ))}
+          </div>
+        ) : null}
+      </div>
+    );
+  } else {
+    return (
+      <div key={Math.random() * 99999} className="mainDiv">
+        <p>
+          {data.author} {data.points + " Points"}{" "}
+          {calculateTime(data.timestamp)}
+        </p>
+        <h3>{data.body}</h3>
+        <div>
+          <span
+            className="spanElem replyBtn"
+            onClick={() => setDisplayInput(!displayInput)}
+          >
+            Reply
+          </span>
+          <span className="spanElem">Give Award</span>
+          <span className="spanElem">Share</span>
+          <span className="spanElem">Report</span>
+          <span className="spanElem">Save</span>
+        </div>
+        <div style={{ display: displayInput ? "block" : "none" }}>
+          <input
+            placeholder="Enter your reply"
+            onChange={(e) => {
+              inputData.current = e.target.value;
+            }}
+          ></input>
+          <button onClick={addreply}>Add Reply</button>
+        </div>
+      </div>
+    );
+  }
 };
